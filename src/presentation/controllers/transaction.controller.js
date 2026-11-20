@@ -41,4 +41,19 @@ export default class TransactionController {
             res.status(404).json({ error: error.message });
         }
     };
+
+
+
+
+// 1/3
+        getPublicTransaction = async (req, res) => {
+        const { id } = req.params;
+        try {
+            const receipt = await this.transactionService.getPublicTransaction(id);
+            res.status(200).json(receipt);
+        } catch (error) {
+            const status = error.statusCode || 400;
+            res.status(status).json({ error: error.message });
+        }
+    };
 }

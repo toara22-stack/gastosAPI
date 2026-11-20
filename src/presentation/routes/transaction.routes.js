@@ -6,6 +6,7 @@ import CurrencyMongoRepository from "../../infrastructure/database/mongo/currenc
 import CategoryMySQLRepository from "../../infrastructure/database/mysql/category.mysql.repository.js";
 import BudgetMySQLRepository from "../../infrastructure/database/mysql/budget.mysql.repository.js";
 import AuditMySQLRepository from "../../infrastructure/database/mysql/audit.mysql.repository.js";
+import WalletMySQLRepository from "../../infrastructure/database/mysql/audit.mysql.repository.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
  
 // Inyección de dependencias
@@ -14,13 +15,15 @@ const currencyRepository = new CurrencyMongoRepository();
 const categoryRepository = new CategoryMySQLRepository();
 const budgetRepository = new BudgetMySQLRepository();
 const auditRepository = new AuditMySQLRepository();
+const walletRepository = new WalletMySQLRepository(); // <-- modf 2
  
 const transactionService = new TransactionService(
     transactionRepository,
     currencyRepository,
     categoryRepository,
     budgetRepository,
-    auditRepository
+    auditRepository,
+    walletRepository // <-- modf 3
 );
 const transactionController = new TransactionController(transactionService);
  
@@ -61,6 +64,11 @@ const router = Router();
  *               categoryId:
  *                 type: integer
  *                 example: 3
+ * 
+ *                walletId:
+ *                 type: integer
+ *                 nullable: true
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Transacción creada y convertida con el tipo de cambio del día
@@ -138,4 +146,26 @@ router.delete("/:id", authMiddleware, transactionController.deleteTransaction);
 export default router;
  
  
- 
+
+//1/3
+ /**
+ * @swagger
+ * /transactions/{id}/public:
+ *   get:
+ *     summary: Obtener el comprobante público de una transacción (sin token JWT)
+ *     tags: [Transactions]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Comprobante público de la transacción
+ *       403:
+ *         description: Acceso denegado porque la transacción es privada (isPrivate = true)
+ *       404:
+ *         description: Transacción no encontrada
+ */
+router.get("/:id/public", transactionController.getPublicTransaction);

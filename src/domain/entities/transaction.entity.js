@@ -11,6 +11,8 @@ export default class TransactionEntity {
         description,
         date,
         categoryId,
+        walletId, // <-- Mod 1
+        isPrivate, // <-- Modf 1/3.
         userId
     }) {
         this.id = id;
@@ -26,6 +28,8 @@ export default class TransactionEntity {
         this.description = description || "";
         this.date = date || new Date().toISOString().split("T")[0];
         this.categoryId = categoryId;
+        this.walletId = walletId ? Number(walletId) : null; // <-- Mod 2
+         this.isPrivate = Boolean(isPrivate); // <-- 2/3
         this.userId = userId;
     }
 }

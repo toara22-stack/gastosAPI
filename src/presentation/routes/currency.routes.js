@@ -5,6 +5,7 @@ import CurrencyMongoRepository from "../../infrastructure/database/mongo/currenc
 import TransactionMySQLRepository from "../../infrastructure/database/mysql/transaction.mysql.repository.js";
 import AuditMySQLRepository from "../../infrastructure/database/mysql/audit.mysql.repository.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { roleMiddleware } from "../middlewares/role.middleware.js";
  
 // Inyección de dependencias
 const currencyRepository = new CurrencyMongoRepository();
@@ -27,7 +28,7 @@ const router = Router();
  *       200:
  *         description: Lista de monedas y tipos de cambio
  */
-router.get("/", authMiddleware, currencyController.getAllCurrencies);
+router.get("/", authMiddleware, roleMiddleware(["admin"]), currencyController.getAllCurrencies);
  
 /**
  * @swagger

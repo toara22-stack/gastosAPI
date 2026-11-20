@@ -2,7 +2,7 @@ import TransactionEntity from "../../domain/entities/transaction.entity.js";
 import AuditEntity from "../../domain/entities/audit.entity.js";
 
 export default class TransactionService {
-    constructor(transactionRepository, currencyRepository, categoryRepository, budgetRepository = null, auditRepository = null) {
+    constructor(transactionRepository, currencyRepository, categoryRepository, budgetRepository = null, auditRepository = null, walletRepository = null) {
         this.transactionRepository = transactionRepository;
         this.currencyRepository = currencyRepository;
         this.categoryRepository = categoryRepository;
@@ -26,6 +26,17 @@ export default class TransactionService {
             throw new Error(`Category type mismatch: category is ${category.type}`);
         }
 
+                // <-- modf 1
+        if (data.walletId && this.walletRepository) {
+            const wallet = await this.walletRepository.findById(data.walletId);
+            if (!wallet) {
+                throw new Error("Wallet not found");
+            }
+            if (wallet.userId !== data.userId) {
+                throw new Error("Unauthorized: You can only use your own wallets");
+            }
+        }
+
         const txDate = data.date || new Date().toISOString().split("T")[0];
         const currencyCode = (data.currency || "BOB").toUpperCase();
 
@@ -36,6 +47,7 @@ export default class TransactionService {
 
         const transaction = new TransactionEntity({
             ...data,
+            walletId: data.walletId || null,
             currency: currencyCode,
             date: txDate,
             exchangeRate: rateRecord.exchangeRate,
@@ -153,4 +165,42 @@ export default class TransactionService {
 
         return { message: "Transaction deleted successfully" };
     }
+
+
+
+
+
+ async getPublicTransaction(id) {
+        const transaction = await this.transactionRepository.findById(id);
+        if (!transaction) {
+            const error = new Error("Transaction not found");
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (transaction.isPrivate) {
+            const error = new Error("Access denied: This transaction receipt is private");
+            error.statusCode = 403;
+            throw error;
+        }
+
+     
+        return {
+            id: transaction.id,
+            type: transaction.type,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            exchangeRate: transaction.exchangeRate,
+            convertedAmount: transaction.convertedAmount,
+            description: transaction.description,
+            date: transaction.date,
+            categoryId: transaction.categoryId,
+            walletId: transaction.walletId,
+            createdAt: transaction.createdAt
+        };
+    }
+
+
+
+
 }

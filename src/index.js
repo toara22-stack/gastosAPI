@@ -3,6 +3,7 @@ import { connectMongo } from './infrastructure/database/mongo/connection.js';
 import { connectMysql } from './infrastructure/database/mysql/connection.js';
 import CurrencyMongoRepository from './infrastructure/database/mongo/currency.mongo.repository.js';
 import CategoryMySQLRepository from './infrastructure/database/mysql/category.mysql.repository.js';
+
  
 await connectMongo();
 await connectMysql();
